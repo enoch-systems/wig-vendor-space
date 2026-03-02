@@ -1,0 +1,466 @@
+"use client";
+
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Menu, 
+  Bell, 
+  User, 
+  X, 
+  LayoutDashboard, 
+  ShoppingCart, 
+  Settings as SettingsIcon, 
+  LogOut, 
+  ArrowLeft,
+  Moon,
+  Sun,
+  Globe,
+  Shield,
+  CreditCard,
+  Smartphone,
+  Mail,
+  Lock,
+  User as UserIcon,
+  Bell as BellIcon,
+  ChevronDown as ChevronDownIcon,
+  Settings as SettingsDropdownIcon,
+  LogOut as LogOutIcon,
+  Edit
+} from 'lucide-react';
+import { recentActivityOrders } from '../constants';
+
+const AdminSettings = () => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
+  const [notifications, setNotifications] = useState(true);
+  const [language, setLanguage] = useState('en');
+  const [currentPath, setCurrentPath] = useState('/admin/settings');
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [notificationModalOpen, setNotificationModalOpen] = useState(false);
+  const [name, setName] = useState('Enoch Chukwudi');
+  const [profilePhoto, setProfilePhoto] = useState('/admin.png');
+  const [timezone, setTimezone] = useState('UTC+00:00 (GMT)');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle photo file selection and immediate saving
+  const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file.');
+        return;
+      }
+
+      // Validate file size (2MB max)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('File size must be less than 2MB.');
+        return;
+      }
+
+      // Create object URL for immediate preview
+      const imageUrl = URL.createObjectURL(file);
+      setProfilePhoto(imageUrl);
+
+      // Here you would typically upload to server
+      // For now, we'll just show the preview
+      console.log('Photo selected and saved:', file.name);
+    }
+  };
+
+  // Trigger file input click
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
+  // Save all changes
+  const handleSaveAllChanges = async () => {
+    const settingsData = {
+      name,
+      language,
+      timezone,
+      profilePhoto, // This is already saved immediately when selected
+      // Note: Email and phone are not editable in this version
+    };
+
+    try {
+      // Here you would typically make an API call to save the data
+      // For now, we'll simulate saving with localStorage and show success
+      localStorage.setItem('adminSettings', JSON.stringify(settingsData));
+      
+      // Show success message
+      alert('All changes saved successfully!');
+      
+      console.log('Settings saved:', settingsData);
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Error saving changes. Please try again.');
+    }
+  };
+
+  // Set current path on mount
+  useEffect(() => {
+    setCurrentPath(window.location.pathname);
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: Event) => {
+      const target = event.target as HTMLElement;
+      if (profileDropdownOpen && !target.closest('.profile-dropdown')) {
+        setProfileDropdownOpen(false);
+      }
+      if (notificationModalOpen && !target.closest('.notification-modal')) {
+        setNotificationModalOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [profileDropdownOpen, notificationModalOpen]);
+
+  const menuItems = [
+    { icon: LayoutDashboard, label: 'Overview', href: '/admin' },
+    { icon: ShoppingCart, label: 'Products', href: '/admin/products' },
+    { icon: ShoppingCart, label: 'Orders', href: '/admin/orders' },
+    { icon: SettingsIcon, label: 'Settings', href: '/admin/settings' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-900">
+      {/* Navigation Bar */}
+      <header className="fixed top-0 left-0 right-0 z-40 bg-gray-800 border-b border-gray-700">
+        <div className="px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-6">
+            <button 
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="p-2 rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              <Menu size={20} className="text-gray-300" />
+            </button>
+            <a href="/admin" className="flex items-center space-x-2">
+              <img src="/wig.png" alt="Logo" className="h-8 w-auto object-contain" />
+              <span className="text-white font-semibold text-lg">Wigga</span>
+            </a>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <button 
+              onClick={() => setNotificationModalOpen(true)}
+              className="p-2 rounded-lg hover:bg-gray-700 transition-colors relative"
+            >
+              <Bell size={20} className="text-gray-300" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            
+            {/* Profile Dropdown */}
+            <div className="relative profile-dropdown">
+              <button
+                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                <img 
+                  src="/admin.png" 
+                  alt="Admin Profile" 
+                  className="w-8 h-8 rounded-full object-cover border-2 border-gray-600"
+                />
+                <ChevronDownIcon size={16} className="text-gray-400" />
+              </button>
+              
+              {profileDropdownOpen && (
+                <>
+                  {/* Blur Overlay */}
+                  <div 
+                    className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+                    onClick={() => setProfileDropdownOpen(false)}
+                  />
+                  
+                  {/* Dropdown Menu */}
+                  <div className="absolute right-0 mt-2 w-64 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-50">
+                    {/* Profile Header */}
+                    <div className="px-4 py-3 border-b border-gray-700">
+                      <div className="flex items-center space-x-3">
+                        <img 
+                          src="/admin.png" 
+                          alt="Admin Profile" 
+                          className="w-10 h-10 rounded-full object-cover border-2 border-gray-600"
+                        />
+                        <div>
+                          <p className="text-white font-medium">Enoch Chukwudi</p>
+                          <p className="text-gray-400 text-sm">enochc.official@gmail.com</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Dropdown Menu Items */}
+                    <div className="py-2">
+                      <a
+                        href="/admin/settings"
+                        className="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                        onClick={() => setProfileDropdownOpen(false)}
+                      >
+                        <SettingsDropdownIcon size={16} className="mr-3" />
+                        <span>Account Settings</span>
+                      </a>
+                      <a
+                        href="/signout"
+                        className="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                        onClick={() => setProfileDropdownOpen(false)}
+                      >
+                        <LogOutIcon size={16} className="mr-3" />
+                        <span>Log out</span>
+                      </a>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="pt-14 p-6 mt-16">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-semibold text-white mb-2">Settings</h1>
+          <p className="text-gray-400">Manage your account settings and preferences</p>
+        </div>
+
+        {/* Settings Sections */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Profile Settings */}
+          <div className="lg:col-span-2">
+            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+              <h2 className="text-xl font-semibold text-white mb-6">Profile Settings</h2>
+              
+              <div className="space-y-6">
+                {/* Profile Picture */}
+                <div className="flex items-center space-x-4">
+                  <img
+                    src={profilePhoto}
+                    alt="Admin Profile"
+                    className="w-20 h-20 rounded-full object-cover border-2 border-gray-600"
+                  />
+                  <div>
+                    <button
+                      onClick={triggerFileInput}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                    >
+                      Select New Photo
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                      className="hidden"
+                    />
+                    <p className="text-gray-400 text-sm mt-1">JPG, PNG or GIF. Max 2MB</p>
+                  </div>
+                </div>
+
+                {/* Name */}
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">Full Name</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full px-4 py-2 pr-10 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                      placeholder="Enter your full name"
+                    />
+                    <Edit className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">Email Address</label>
+                  <div className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-400">
+                    enochc.official@gmail.com
+                  </div>
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">Phone Number</label>
+                  <div className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-400">
+                    09162919586
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            {/* Preferences */}
+            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+              <h2 className="text-xl font-semibold text-white mb-6">Preferences</h2>
+              
+              <div className="space-y-6">
+                {/* Language */}
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">Language</label>
+                  <select 
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="en">English</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                    <option value="de">German</option>
+                  </select>
+                </div>
+
+                {/* Timezone */}
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">Timezone</label>
+                  <select 
+                    value={timezone}
+                    onChange={(e) => setTimezone(e.target.value)}
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                  >
+                    <option>UTC+00:00 (GMT)</option>
+                    <option>UTC+01:00 (WAT)</option>
+                    <option>UTC+02:00 (CAT)</option>
+                    <option>UTC+03:00 (EAT)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Save Button */}
+        <div className="mt-8 flex justify-end">
+          <button 
+            onClick={handleSaveAllChanges}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+          >
+            Save All Changes
+          </button>
+        </div>
+      </main>
+
+      {/* Left Side Menu */}
+      <div className={`fixed inset-0 z-50 transition-all duration-300 delay-300 ${
+        menuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+      }`}>
+        {/* Backdrop */}
+        <div 
+          className="absolute inset-0 bg-black/10 bg-opacity-50 backdrop-blur-lg"
+          onClick={() => setMenuOpen(false)}
+        ></div>
+        
+        {/* Menu Panel */}
+        <div className={`absolute top-0 left-0 h-full w-64 bg-gray-800 shadow-xl transform transition-transform duration-700 ease-in-out ${
+          menuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}>
+          <div className="p-6 border-b border-gray-700">
+            <div className="flex items-center justify-between">
+              <a href="/admin" className="flex items-center space-x-2">
+                <img src="/wig.png" alt="Logo" className="h-6 w-auto object-contain" />
+                <span className="text-white font-semibold">Wigga</span>
+              </a>
+              <button
+                onClick={() => setMenuOpen(false)}
+                className="p-2 rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                <X size={20} className="text-gray-300" />
+              </button>
+            </div>
+          </div>
+          
+          <nav className="p-4">
+            {/* Back to Store Button */}
+            <a
+              href="/"
+              className="flex items-center p-3 mb-4 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors group"
+              onClick={() => setMenuOpen(false)}
+            >
+              <ArrowLeft size={20} className="min-w-[20px]" />
+              <span className="ml-3 font-medium">Back to Store</span>
+            </a>
+            
+            {menuItems.map((item, index) => {
+              const isActive = currentPath === item.href;
+              return (
+                <a
+                  key={index}
+                  href={item.href}
+                  className={`flex items-center p-3 mb-2 rounded-lg transition-colors group ${
+                    isActive
+                      ? 'bg-slate-600 text-white'
+                      : 'hover:bg-gray-700 text-gray-300 hover:text-white'
+                  }`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <item.icon size={20} className={`min-w-[20px] ${isActive ? 'text-white' : ''}`} />
+                  <span className="ml-3 font-medium">{item.label}</span>
+                </a>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
+
+      {/* Notification Modal */}
+      {notificationModalOpen && (
+        <>
+          {/* Blur Overlay */}
+            <div 
+              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50"
+              onClick={() => setNotificationModalOpen(false)}
+            />
+            
+            {/* Modal Content */}
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div className="notification-modal bg-gray-800 rounded-xl border border-gray-700 shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+                {/* Modal Header */}
+                <div className="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-white">Recent Activity</h2>
+                  <button
+                    onClick={() => setNotificationModalOpen(false)}
+                    className="p-2 rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    <X size={20} className="text-gray-400" />
+                  </button>
+                </div>
+                
+                {/* Modal Body - Scrollable */}
+                <div className="px-6 py-4 max-h-[60vh] overflow-y-auto">
+                  <div className="space-y-4">
+                    {recentActivityOrders.map((order) => (
+                      <div key={order.id} className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <img src={order.productImage} alt="Product" className="w-12 h-12 object-cover rounded-lg" />
+                          <div>
+                            <p className="text-white font-medium">{order.productName}</p>
+                            <p className="text-gray-400 text-sm">From: {order.phone}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-gray-300 text-sm">
+                            {order.firstName}<br />
+                            {order.lastName}
+                          </p>
+                          <p className="text-green-400 text-xs">{order.status}</p>
+                          <p className="text-gray-500 text-xs">{order.timestamp}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+export default AdminSettings;
